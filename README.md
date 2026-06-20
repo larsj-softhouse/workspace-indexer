@@ -60,18 +60,36 @@ To connect this server to **OpenCode**, add the following definition to your con
 
 ```json
 {
-  "mcpServers": {
+  "mcp": {
     "workspace-indexer": {
-      "type": "stdio",
-      "command": "node",
-      "args": [
-        "/absolute/path/to/workspace-indexer/dist/index.js",
-        "/absolute/path/to/your/workspace"
-      ],
-      "env": {}
+      "type": "local",
+      "command": ["node", "/absolute/path/to/workspace-indexer/dist/index.js", ,"/absolute/path/to/your/workspace"],
+      "environment": {}
     }
   }
 }
+```
+
+### AGENTS.md
+Add this to your AGENTS.md:
+```
+# Project Ground Rules & Code Navigation
+
+You are an expert developer and AI assistant for this project. To work efficiently, understand the architecture, and save LLM tokens, you have access to a custom MCP server (Workspace Indexer). This server maintains an in-memory AST index of the codebase's exported symbols (TypeScript and Vue).
+
+## 🚨 CRITICAL RULE: Custom MCP Tool Usage
+
+Before you start writing code, proposing changes, or invoking generic system tools (like standard file readers or grep searches), you **MUST** use the custom MCP server tools to locate and read the code. 
+
+**NEVER** guess file paths, and never assume you know where a file is located without querying the index first.
+
+### Your Mandatory Workflow:
+
+1. **Search the AST Index FIRST:** ALWAYS use the `find_symbol` tool (e.g., with the argument `"LoginButton"` or `"calculateTaxes"`) to find the exact file path for functions, classes, variables, or Vue components. This is the absolute fastest and most reliable source of truth.
+2. **Read Context Smartly:** Once you have obtained a file path, prefer using the `read_file_snippet` tool if you are looking for a specific function within a large file to save tokens. Use `read_file` to read the entire file only when strictly necessary.
+3. **Explore Directories when Needed:** Use the `list_directory` tool if you need to understand the physical structure of a specific part of the project.
+
+By strictly following this workflow, you ensure your actions and suggestions are always grounded in the actual, up-to-date codebase. 
 ```
 
 ---
